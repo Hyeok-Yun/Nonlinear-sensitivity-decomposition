@@ -8,7 +8,7 @@ function [sensi,variation] = NLSD(net,input,output)
 % variation: the variation of the output caused by each input in a sample.
 % sensi: the sensitivity of each input to the output in each segment between the origin and the sample.
 %% code
-if varargin<4
+if nargin<4
     num_segment = 5;
 end
 
@@ -21,7 +21,7 @@ for i = 1:size(input,2)
     input_interval{i} = space;
 end
 
-if varargout<2
+if nargout<2
     variation = cell(size(output,1),1);
     for o = 1:size(output,1)
         variation{o} = zeros(size(input));
