@@ -21,10 +21,45 @@ for i = 1:size(input,2)
     input_interval{i} = space;
 end
 
-if nargout<2
-    variation = cell(size(output,1),1);
-    for o = 1:size(output,1)
-        variation{o} = zeros(size(input));
+if size(output,1)>1 % formatting as the cell
+    if nargout<2
+        variation = cell(size(output,1),1);
+        for i = 1:size(input,2)
+            for j = 1:size(input,1)
+                space2 = zeros(size(output,1),1);
+                for k = 1:num_segment
+                    space = [input_interval{i}(:,k) input_interval{i}(:,k) input_interval{i}(:,k+1) input_interval{i}(:,k+1)];
+                    space(j,2) = space(j,3); space(j,3) = space(j,1);
+                    space2 = space2 + (net(space(:,2)) - net(space(:,1)) + net(space(:,4)) - net(space(:,3)))/2;
+                end
+                for o = 1:size(output,1)
+                    variation{o}(j,i) = space2(o);
+                end
+            end
+        end
+    else
+        variation = cell(size(output,1),1); sensi = cell(size(output,1),1);
+        for i = 1:size(input,2)
+            for j = 1:size(input,1)
+                space2 = 0;
+                for k = 1:num_segment
+                    space = [input_interval{i}(:,k) input_interval{i}(:,k) input_interval{i}(:,k+1) input_interval{i}(:,k+1)];
+                    space(j,2) = space(j,3); space(j,3) = space(j,1);
+                    space3 = (net(space(:,2)) - net(space(:,1)) + net(space(:,4)) - net(space(:,3)))/2;
+                    space2 = space2 + space3;
+                    for o = 1:size(output,1)
+                        sensi{o}{i}(j,k) = space3(o);
+                    end
+                end
+                for o = 1:size(output,1)
+                    variation{o}(j,i) = space2(o);
+                end
+            end
+        end
+    end
+else % formatting as the double
+    if nargout<2
+        variation = zeros(size(input));
         for i = 1:size(input,2)
             for j = 1:size(input,1)
                 space2 = 0;
@@ -33,24 +68,21 @@ if nargout<2
                     space(j,2) = space(j,3); space(j,3) = space(j,1);
                     space2 = space2 + (net(space(:,2)) - net(space(:,1)) + net(space(:,4)) - net(space(:,3)))/2;
                 end
-                variation{o}(j,i) = space2;
+                variation(j,i) = space2;
             end
         end
-    end
-else
-    variation = cell(size(output,1),1); sensi = cell(size(output,1),1);
-    for o = 1:size(output,1)
-        variation{o} = zeros(size(input)); sensi{o} = cell(1,size(input,2));
+    else
+        variation = zeros(size(input)); sensi = cell(1,size(input,2));
         for i = 1:size(input,2)
             for j = 1:size(input,1)
                 space2 = 0;
                 for k = 1:num_segment
                     space = [input_interval{i}(:,k) input_interval{i}(:,k) input_interval{i}(:,k+1) input_interval{i}(:,k+1)];
                     space(j,2) = space(j,3); space(j,3) = space(j,1);
-                    sensi{o}{i}(j,k) = (net(space(:,2)) - net(space(:,1)) + net(space(:,4)) - net(space(:,3)))/2;
-                    space2 = space2 + sensi{o}{i}(j,k);
+                    sensi{i}(j,k) = (net(space(:,2)) - net(space(:,1)) + net(space(:,4)) - net(space(:,3)))/2;
+                    space2 = space2 + sensi{i}(j,k);
                 end
-                variation{o}(j,i) = space2;
+                variation(j,i) = space2;
             end
         end
     end
